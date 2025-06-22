@@ -261,3 +261,18 @@ fun Long.toDayFormat(): String {
     val year = calendar.getYear().toString()
     return "$day/$month/$year"
 }
+
+fun Long.toDateTimeFormat(): String {
+    val calendar = this.toCalendar()
+    val day = calendar.getDay().toTimeFormat()
+    val month = calendar.getMonth().toTimeFormat()
+    return "$day/$month"
+}
+
+fun Long.toHourMinuteFormat(): String {
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = this
+    val hour = calendar.getHour().toTimeFormat()
+    val minute = calendar.getMinutes().toTimeFormat()
+    return "$hour:$minute"
+}

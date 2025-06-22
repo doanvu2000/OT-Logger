@@ -6,11 +6,12 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.hit.otlogger.data.model.OTModel
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppDAO {
     @Query("SELECT * FROM ot_table")
-    suspend fun getAllData(): List<OTModel>
+    fun getAllData(): Flow<List<OTModel>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertData(otModel: OTModel): Long

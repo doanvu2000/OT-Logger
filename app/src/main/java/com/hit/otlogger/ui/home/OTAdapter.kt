@@ -8,6 +8,7 @@ import com.hit.otlogger.data.model.OTModel
 import com.hit.otlogger.databinding.ItemMonthTotalLoggerBinding
 import com.hit.otlogger.util.CalendarUtil
 import com.hit.otlogger.util.toDayFormat
+import com.hit.otlogger.util.toHourMinuteFormat
 
 class OTAdapter : BaseAdapterRecyclerView<OTModel, ItemMonthTotalLoggerBinding>() {
     override fun inflateBinding(
@@ -23,9 +24,16 @@ class OTAdapter : BaseAdapterRecyclerView<OTModel, ItemMonthTotalLoggerBinding>(
         binding.tvDate.text = "Ngày ${item.date.toDayFormat()}"
 
         CalendarUtil.diffTime(item.timeStart, item.timeEnd) { hour, minutes ->
-            val totalTime = hour + minutes.toFloat() / 60
+            var totalTime = String.format("%.1f", hour + minutes.toFloat() / 60)
 
-            binding.tvDate.text = "Tổng thời gian: $totalTime giờ"
+            totalTime = if (totalTime.endsWith(".0") || totalTime.endsWith(",0")) {
+                "OT: ${totalTime.toFloat().toInt()} giờ"
+            } else {
+                "OT: $totalTime giờ"
+            }
+
+            binding.tvTimeOT.text =
+                "$totalTime (${item.timeStart.toHourMinuteFormat()} - ${item.timeEnd.toHourMinuteFormat()})"
         }
     }
 }

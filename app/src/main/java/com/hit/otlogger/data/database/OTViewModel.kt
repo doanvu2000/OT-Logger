@@ -1,14 +1,12 @@
 package com.hit.otlogger.data.database
 
+import androidx.lifecycle.asFlow
 import com.hit.otlogger.base.BaseViewModel
 import com.hit.otlogger.data.model.OTModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -23,16 +21,7 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
         }
     }
 
-    private val _allData = MutableStateFlow<List<OTModel>>(emptyList())
-    val allData: Flow<List<OTModel>> = _allData.asStateFlow()
-
-    fun getAllData() {
-        launchSafe {
-            _allData.update {
-                repository.getAllData()
-            }
-        }
-    }
+    val allData: Flow<List<OTModel>> = repository.allData.asFlow()
 
     fun insertData(entity: OTModel) {
         launchSafe(Dispatchers.IO) {
@@ -48,6 +37,8 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
 
     sealed class Event {
         data object ClickAdd : Event()
+        data object ClickChooseMonth : Event()
+        data object ClickCopy : Event()
     }
 
     private val eventChannel = Channel<Event>()
@@ -55,5 +46,13 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
 
     fun clickAdd() {
         sendEvent(eventChannel, Event.ClickAdd)
+    }
+
+    fun clickChooseMonth() {
+        sendEvent(eventChannel, Event.ClickChooseMonth)
+    }
+
+    fun clickCopy() {
+        sendEvent(eventChannel, Event.ClickCopy)
     }
 }
