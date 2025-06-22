@@ -8,6 +8,9 @@ pluginManagement {
             }
         }
         mavenCentral()
+        maven {
+            setUrl("https://jitpack.io")
+        }
         gradlePluginPortal()
     }
 }
@@ -16,9 +19,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            setUrl("https://jitpack.io")
+        }
     }
 }
 
-rootProject.name = "otlogger"
+rootProject.name = "OT Logger"
 include(":app")
  
