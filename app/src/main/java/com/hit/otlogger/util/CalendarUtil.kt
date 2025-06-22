@@ -25,13 +25,26 @@ object CalendarUtil {
     )
 
     enum class DayOfWeek(val order: Int, val stringId: Int, val stringShort: Int) {
-        SunDay(Calendar.SUNDAY, R.string.sunday_full, R.string.sunday),
-        MonDay(Calendar.MONDAY, R.string.monday_full, R.string.monday),
-        Tuesday(Calendar.TUESDAY, R.string.tuesday_full, R.string.tuesday),
-        Wednesday(Calendar.WEDNESDAY, R.string.wednesday_full, R.string.wednesday),
-        Thursday(Calendar.THURSDAY, R.string.thursday_full, R.string.thursday),
-        Friday(Calendar.FRIDAY, R.string.friday_full, R.string.friday),
-        Saturday(Calendar.SATURDAY, R.string.saturday_full, R.string.saturday);
+        SunDay(Calendar.SUNDAY, R.string.sunday_full, R.string.sunday), MonDay(
+            Calendar.MONDAY,
+            R.string.monday_full,
+            R.string.monday
+        ),
+        Tuesday(
+            Calendar.TUESDAY,
+            R.string.tuesday_full,
+            R.string.tuesday
+        ),
+        Wednesday(Calendar.WEDNESDAY, R.string.wednesday_full, R.string.wednesday), Thursday(
+            Calendar.THURSDAY,
+            R.string.thursday_full,
+            R.string.thursday
+        ),
+        Friday(Calendar.FRIDAY, R.string.friday_full, R.string.friday), Saturday(
+            Calendar.SATURDAY,
+            R.string.saturday_full,
+            R.string.saturday
+        );
 
         companion object {
             fun getDayByIndex(dayOfWeek: Int): DayOfWeek {
@@ -297,6 +310,19 @@ object CalendarUtil {
             rs += "$minutes phút "
         }
         return rs
+    }
+
+    fun diffTime(startTime: Long, endTime: Long, onResult: (hour: Int, minutes: Int) -> Unit) {
+        val diff: Long = Date(endTime).time - Date(startTime).time
+        val numDay = 1000 * 60 * 60 * 24
+        val numHour = 1000 * 60 * 60
+        val numMinutes = 1000 * 60
+        val numSecond = 1000
+        val days = diff / numDay
+        val hours = (diff - days * numDay) / numHour
+        val minutes = (diff - days * numDay - hours * numHour) / numMinutes
+
+        onResult.invoke(hours.toInt(), minutes.toInt())
     }
 
 }

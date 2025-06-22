@@ -247,3 +247,17 @@ fun Long.toCalendar(): Calendar {
 
 fun todayIsWeekend() = now().toCalendar().isWeekend()
 fun todayIsInWeek() = now().toCalendar().isInWeek()
+
+fun Int.toTimeFormat(): String {
+    if (this < 10) return "0$this"
+    return this.toString()
+}
+
+fun Long.toDayFormat(): String {
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = this
+    val day = calendar.getDay().toTimeFormat()
+    val month = calendar.getMonth().toTimeFormat()
+    val year = calendar.getYear().toString()
+    return "$day/$month/$year"
+}

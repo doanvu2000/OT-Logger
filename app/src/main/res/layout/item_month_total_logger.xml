@@ -16,7 +16,7 @@
         android:paddingVertical="14dp">
 
         <TextView
-            android:id="@+id/tvMonth"
+            android:id="@+id/tvDate"
             style="@style/fontRoboto600"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
