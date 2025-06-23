@@ -12,16 +12,15 @@ import com.hit.otlogger.data.database.getViewModelFactory
 import com.hit.otlogger.data.model.OTModel
 import com.hit.otlogger.databinding.FragmentHomeBinding
 import com.hit.otlogger.ui.dialog.AddOTBottomDialog
+import com.hit.otlogger.ui.dialog.DialogPickMonthYear
 import com.hit.otlogger.ui.dialog.DialogResultCopy
 import com.hit.otlogger.util.clickWithAnimation
 import com.hit.otlogger.util.getMonth
 import com.hit.otlogger.util.getYear
 import com.hit.otlogger.util.launchOnStarted
-import com.hit.otlogger.util.now
 import com.hit.otlogger.util.setLinearLayoutManager
 import com.hit.otlogger.util.showToast
 import com.hit.otlogger.util.toCalendar
-import java.util.Calendar
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     override fun inflateLayout(
@@ -42,6 +41,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     private val dialogResult by lazy {
         DialogResultCopy(requireContext())
+    }
+
+    private val dialogPickMonthYear by lazy {
+        DialogPickMonthYear(requireContext())
     }
 
     override fun initView() {
@@ -144,25 +147,38 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     @SuppressLint("DefaultLocale")
     private fun clickChooseMonth() {
-        // Show dialog to pick month and year
-        val calendar = now().toCalendar()
-        val year = calendar.getYear()
-        val month = calendar[Calendar.MONTH]
 
-        val datePickerDialog = android.app.DatePickerDialog(
-            requireContext(), { _, selectedYear, selectedMonth, _ ->
-                // Process the selected year and month
-                yearSelected = selectedYear
-                monthSelected = selectedMonth + 1
+        launchCoroutineMain {
+            dialogPickMonthYear.show { month, year ->
+                monthSelected = month
+                yearSelected = year
                 isFilter = true
                 reloadData()
 
                 binding.btnChooseMonth.text =
                     String.format("Tháng %02d/%d", monthSelected, yearSelected)
-            }, year, month, 1 // Day doesn't matter as we're only interested in month and year
-        )
+            }
+        }
 
-        datePickerDialog.show()
+//        // Show dialog to pick month and year
+//        val calendar = now().toCalendar()
+//        val year = calendar.getYear()
+//        val month = calendar[Calendar.MONTH]
+//
+//        val datePickerDialog = android.app.DatePickerDialog(
+//            requireContext(), { _, selectedYear, selectedMonth, _ ->
+//                // Process the selected year and month
+//                yearSelected = selectedYear
+//                monthSelected = selectedMonth + 1
+//                isFilter = true
+//                reloadData()
+//
+//                binding.btnChooseMonth.text =
+//                    String.format("Tháng %02d/%d", monthSelected, yearSelected)
+//            }, year, month, 1 // Day doesn't matter as we're only interested in month and year
+//        )
+//
+//        datePickerDialog.show()
     }
 
     @SuppressLint("DefaultLocale", "SetTextI18n")
