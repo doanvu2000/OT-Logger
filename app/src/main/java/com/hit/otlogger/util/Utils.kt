@@ -13,3 +13,7 @@ fun tryCatch(tryBlock: () -> Unit, catchBlock: ((e: Exception) -> Unit)? = null)
         catchBlock?.invoke(e)
     }
 }
+
+fun Float.floorOneNumber(): Float {
+    return (this * 10).toInt() / 10f
+}

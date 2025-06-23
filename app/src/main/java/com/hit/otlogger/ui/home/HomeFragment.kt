@@ -12,6 +12,7 @@ import com.hit.otlogger.databinding.FragmentHomeBinding
 import com.hit.otlogger.ui.dialog.AddOTBottomDialog
 import com.hit.otlogger.util.CalendarUtil
 import com.hit.otlogger.util.clickWithAnimation
+import com.hit.otlogger.util.floorOneNumber
 import com.hit.otlogger.util.getMonth
 import com.hit.otlogger.util.getYear
 import com.hit.otlogger.util.launchOnStarted
@@ -95,7 +96,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         itemTouchHelper.attachToRecyclerView(binding.rcvOTLogger)
     }
 
-    @SuppressLint("DefaultLocale")
+    @SuppressLint("DefaultLocale", "SetTextI18n")
     override fun initData() {
         launchOnStarted {
             viewModel.allData.collect { data ->
@@ -105,18 +106,16 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                 if (isFilter) {
                     reloadData()
                 } else {
-                    var total = 0f
+                    var total = 0
                     dataSorted.forEach {
                         CalendarUtil.diffTime(it.timeStart, it.timeEnd) { hour, minutes ->
-                            total += hour + minutes.toFloat() / 60
+                            total += hour * 60 + minutes
                         }
                     }
 
-                    if (total.toInt() - total == 0.0f) {
-                        binding.tvTotalTime.text = "OT: ${total.toInt()} giờ"
-                    } else {
-                        binding.tvTotalTime.text = "OT: ${String.format("%.1f", total)} giờ"
-                    }
+                    val hour = total / 60
+                    val minutes = total - hour * 60
+                    binding.tvTotalTime.text = "OT: $hour giờ $minutes phút"
                     otAdapter.setDataList(allData)
                 }
             }
@@ -178,18 +177,16 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         }
         otAdapter.setDataList(filteredList)
 
-        var total = 0f
+        var total = 0
         filteredList.forEach {
             CalendarUtil.diffTime(it.timeStart, it.timeEnd) { hour, minutes ->
-                total += hour + minutes.toFloat() / 60
+                total += hour * 60 + minutes
             }
         }
 
-        if (total.toInt() - total == 0.0f) {
-            binding.tvTotalTime.text = "OT: ${total.toInt()} giờ"
-        } else {
-            binding.tvTotalTime.text = "OT: ${String.format("%.1f", total)} giờ"
-        }
+        val hour = total / 60
+        val minutes = total - hour * 60
+        binding.tvTotalTime.text = "OT: $hour giờ $minutes phút"
     }
 
     private fun clickCopy() {
@@ -200,7 +197,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
         val title = "Giờ OT tháng $monthSelected: \n"
         var body = ""
-        var total = 0f
+        var total = 0
         allData.forEach { ot ->
             val otCalendar = ot.date.toCalendar()
             if (otCalendar.getYear() == yearSelected && otCalendar.getMonth() == monthSelected) {
@@ -208,29 +205,20 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
 
                 CalendarUtil.diffTime(ot.timeStart, ot.timeEnd) { hour, minutes ->
-                    val diff = hour + minutes.toFloat() / 60
-                    total += diff
-
-                    var diffString = String.format("%.1f", diff)
-                    diffString = if (diffString.endsWith(".0") || diffString.endsWith(",0")) {
-                        "OT: ${diffString.toFloat().toInt()} giờ"
-                    } else {
-                        "OT: $diffString giờ"
-                    }
+                    total += hour * 60 + minutes
 
                     body += "$date: ${ot.timeStart.toHourMinuteFormat()} - ${
-                        ot.timeEnd
-                            .toHourMinuteFormat()
-                    } ($diffString)\n"
+                        ot.timeEnd.toHourMinuteFormat()
+                    } ($hour giờ $minutes phút)\n"
                 }
             }
         }
 
-        val timeString = if (total.toInt() - total == 0.0f) {
-            "${total.toInt()} giờ"
-        } else {
-            "${String.format("%.1f", total)} giờ"
-        }
+        val totalHour = total / 60
+        val totalMinutes = total - totalHour * 60
+
+        val timeString =
+            "${(totalHour + totalMinutes / 60f).floorOneNumber()} giờ($totalHour giờ $totalMinutes phút)"
 
         val content = StringBuilder()
         content.append(title)

@@ -15,9 +15,11 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        base.archivesName = "OT Logger($versionName)"
     }
 
     buildTypes {
