@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
+import java.util.Calendar
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -62,7 +63,7 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
         data: List<OTModel>,
         monthSelected: Int,
         yearSelected: Int,
-        totalOTTime: ((content: String, minutes: Int) -> Unit)? = null
+        totalOTTime: ((content: String, minutes: Int, avg: Int) -> Unit)? = null
     ): String {
         val title = "Giờ OT tháng $monthSelected: \n"
         val body = StringBuilder()
@@ -98,8 +99,29 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
         content.append(body)
         content.append("\nTổng: $timeString")
 
-        totalOTTime?.invoke(content.toString(), total)
+        val avg = calculateAverageOT(total, monthSelected, yearSelected)
+
+        totalOTTime?.invoke(content.toString(), total, avg)
         return content.toString()
+    }
+
+    /**
+     * Calculates the average overtime hours for a given list of OTModel.
+     * If a specific date is provided, calculates for that day.
+     * If a week (list of dates) is provided, calculates for the week.
+     * Returns the average in hours as a Float.
+     */
+    fun calculateAverageOT(
+        totalMinutes: Int, monthSelected: Int, yearSelected: Int
+    ): Int {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.MONTH, monthSelected - 1) // Calendar.MONTH is zero-based
+            set(Calendar.YEAR, yearSelected)
+        }
+
+        val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH) - 4
+
+        return totalMinutes / daysInMonth
     }
 
     sealed class Event {

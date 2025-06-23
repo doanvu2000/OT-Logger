@@ -185,9 +185,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
             return
         }
 
-        val content = viewModel.getTotalFormat(allData, monthSelected, yearSelected) { msg, time ->
-            dialogResult.show(msg, monthSelected, yearSelected, time)
-        }
+        val content =
+            viewModel.getTotalFormat(allData, monthSelected, yearSelected) { msg, time, avg ->
+                dialogResult.show(msg, monthSelected, yearSelected, time, avg)
+            }
         requireContext().getSystemService(android.content.ClipboardManager::class.java)
             .setPrimaryClip(
                 android.content.ClipData.newPlainText(
