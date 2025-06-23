@@ -4,15 +4,16 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.hit.otlogger.base.BaseFragment
 import com.hit.otlogger.data.database.OTViewModel
 import com.hit.otlogger.data.database.getViewModelFactory
 import com.hit.otlogger.data.model.OTModel
 import com.hit.otlogger.databinding.FragmentHomeBinding
 import com.hit.otlogger.ui.dialog.AddOTBottomDialog
-import com.hit.otlogger.util.CalendarUtil
+import com.hit.otlogger.ui.dialog.DialogResultCopy
 import com.hit.otlogger.util.clickWithAnimation
-import com.hit.otlogger.util.floorOneNumber
 import com.hit.otlogger.util.getMonth
 import com.hit.otlogger.util.getYear
 import com.hit.otlogger.util.launchOnStarted
@@ -20,8 +21,6 @@ import com.hit.otlogger.util.now
 import com.hit.otlogger.util.setLinearLayoutManager
 import com.hit.otlogger.util.showToast
 import com.hit.otlogger.util.toCalendar
-import com.hit.otlogger.util.toDateTimeFormat
-import com.hit.otlogger.util.toHourMinuteFormat
 import java.util.Calendar
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
@@ -39,6 +38,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     private var allData = mutableListOf<OTModel>()
     private val otAdapter by lazy {
         OTAdapter()
+    }
+
+    private val dialogResult by lazy {
+        DialogResultCopy(requireContext())
     }
 
     override fun initView() {
@@ -67,32 +70,30 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     }
 
     private fun setupSwipeToDelete() {
-        val itemTouchHelperCallback =
-            object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
-                0,
-                androidx.recyclerview.widget.ItemTouchHelper.LEFT or androidx.recyclerview.widget.ItemTouchHelper.RIGHT
-            ) {
-                override fun onMove(
-                    recyclerView: androidx.recyclerview.widget.RecyclerView,
-                    viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
-                    target: androidx.recyclerview.widget.RecyclerView.ViewHolder
-                ): Boolean {
-                    return false
-                }
-
-                override fun onSwiped(
-                    viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder, direction: Int
-                ) {
-                    val position = viewHolder.bindingAdapterPosition
-                    val itemToDelete = otAdapter.dataList[position]
-
-                    // Delete from database
-                    viewModel.deleteData(itemToDelete)
-                    showToast("Item deleted")
-                }
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
+            0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
             }
 
-        val itemTouchHelper = androidx.recyclerview.widget.ItemTouchHelper(itemTouchHelperCallback)
+            override fun onSwiped(
+                viewHolder: RecyclerView.ViewHolder, direction: Int
+            ) {
+                val position = viewHolder.bindingAdapterPosition
+                val itemToDelete = otAdapter.dataList[position]
+
+                // Delete from database
+                viewModel.deleteData(itemToDelete)
+                showToast("Item deleted")
+            }
+        }
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(binding.rcvOTLogger)
     }
 
@@ -106,17 +107,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                 if (isFilter) {
                     reloadData()
                 } else {
-                    var total = 0
-                    dataSorted.forEach {
-                        CalendarUtil.diffTime(it.timeStart, it.timeEnd) { hour, minutes ->
-                            total += hour * 60 + minutes
-                        }
-                    }
-
-                    val hour = total / 60
-                    val minutes = total - hour * 60
-                    binding.tvTotalTime.text = "OT: $hour giờ $minutes phút"
                     otAdapter.setDataList(allData)
+
+                    viewModel.calculateTotalOT(dataSorted) { hour, minutes, total ->
+                        binding.tvTotalTime.text = "OT: $hour giờ $minutes phút"
+                    }
                 }
             }
         }
@@ -147,6 +142,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     private fun clickChooseMonth() {
         // Show dialog to pick month and year
         val calendar = now().toCalendar()
@@ -161,7 +157,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                 isFilter = true
                 reloadData()
 
-                binding.btnChooseMonth.text = String.format("%02d/%d", monthSelected, yearSelected)
+                binding.btnChooseMonth.text =
+                    String.format("Tháng %02d/%d", monthSelected, yearSelected)
             }, year, month, 1 // Day doesn't matter as we're only interested in month and year
         )
 
@@ -177,16 +174,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         }
         otAdapter.setDataList(filteredList)
 
-        var total = 0
-        filteredList.forEach {
-            CalendarUtil.diffTime(it.timeStart, it.timeEnd) { hour, minutes ->
-                total += hour * 60 + minutes
-            }
+        viewModel.calculateTotalOT(filteredList) { hour, minutes, total ->
+            binding.tvTotalTime.text = "OT: $hour giờ $minutes phút"
         }
-
-        val hour = total / 60
-        val minutes = total - hour * 60
-        binding.tvTotalTime.text = "OT: $hour giờ $minutes phút"
     }
 
     private fun clickCopy() {
@@ -195,41 +185,17 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
             return
         }
 
-        val title = "Giờ OT tháng $monthSelected: \n"
-        var body = ""
-        var total = 0
-        allData.forEach { ot ->
-            val otCalendar = ot.date.toCalendar()
-            if (otCalendar.getYear() == yearSelected && otCalendar.getMonth() == monthSelected) {
-                val date = ot.date.toDateTimeFormat()
-
-
-                CalendarUtil.diffTime(ot.timeStart, ot.timeEnd) { hour, minutes ->
-                    total += hour * 60 + minutes
-
-                    body += "$date: ${ot.timeStart.toHourMinuteFormat()} - ${
-                        ot.timeEnd.toHourMinuteFormat()
-                    } ($hour giờ $minutes phút)\n"
-                }
-            }
+        val content = viewModel.getTotalFormat(allData, monthSelected, yearSelected) { msg, time ->
+            dialogResult.show(msg, monthSelected, yearSelected, time)
         }
-
-        val totalHour = total / 60
-        val totalMinutes = total - totalHour * 60
-
-        val timeString =
-            "${(totalHour + totalMinutes / 60f).floorOneNumber()} giờ($totalHour giờ $totalMinutes phút)"
-
-        val content = StringBuilder()
-        content.append(title)
-        content.append(body)
-        content.append("Tổng: $timeString")
         requireContext().getSystemService(android.content.ClipboardManager::class.java)
             .setPrimaryClip(
                 android.content.ClipData.newPlainText(
-                    "Giờ OT tháng ${monthSelected}", content.toString()
+                    "Giờ OT tháng $monthSelected", content
                 )
             )
+
+
 
         showToast("Đã sao chép giờ OT tháng $monthSelected vào clipboard")
     }

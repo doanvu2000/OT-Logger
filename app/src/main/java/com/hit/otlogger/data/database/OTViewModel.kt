@@ -3,6 +3,13 @@ package com.hit.otlogger.data.database
 import androidx.lifecycle.asFlow
 import com.hit.otlogger.base.BaseViewModel
 import com.hit.otlogger.data.model.OTModel
+import com.hit.otlogger.util.CalendarUtil
+import com.hit.otlogger.util.floorOneNumber
+import com.hit.otlogger.util.getMonth
+import com.hit.otlogger.util.getYear
+import com.hit.otlogger.util.toCalendar
+import com.hit.otlogger.util.toDateTimeFormat
+import com.hit.otlogger.util.toHourMinuteFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +40,66 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
         launchSafe(Dispatchers.IO) {
             repository.deleteGallery(entity)
         }
+    }
+
+    fun calculateTotalOT(
+        data: List<OTModel>, onResult: (hour: Int, minutes: Int, total: Int) -> Unit
+    ) {
+        var total = 0
+        data.forEach {
+            CalendarUtil.diffTime(it.timeStart, it.timeEnd) { hour, minutes ->
+                total += hour * 60 + minutes
+            }
+        }
+
+        val hour = total / 60
+        val minutes = total - hour * 60
+
+        onResult.invoke(hour, minutes, total)
+    }
+
+    fun getTotalFormat(
+        data: List<OTModel>,
+        monthSelected: Int,
+        yearSelected: Int,
+        totalOTTime: ((content: String, minutes: Int) -> Unit)? = null
+    ): String {
+        val title = "Giờ OT tháng $monthSelected: \n"
+        val body = StringBuilder()
+        var total = 0
+        data.forEach { ot ->
+            val otCalendar = ot.date.toCalendar()
+            if (otCalendar.getYear() == yearSelected && otCalendar.getMonth() == monthSelected) {
+                val date = ot.date.toDateTimeFormat()
+
+
+                CalendarUtil.diffTime(ot.timeStart, ot.timeEnd) { hour, minutes ->
+                    total += hour * 60 + minutes
+
+                    body.append(
+                        "- Ngày $date: ${ot.timeStart.toHourMinuteFormat()} - ${
+                            ot.timeEnd.toHourMinuteFormat()
+                        } ($hour giờ $minutes phút)\n"
+                    )
+
+                    body.append("--------------------------------\n")
+                }
+            }
+        }
+
+        val totalHour = total / 60
+        val totalMinutes = total - totalHour * 60
+
+        val timeString =
+            "${(totalHour + totalMinutes / 60f).floorOneNumber()} giờ($totalHour giờ $totalMinutes phút)"
+
+        val content = StringBuilder()
+        content.append(title)
+        content.append(body)
+        content.append("\nTổng: $timeString")
+
+        totalOTTime?.invoke(content.toString(), total)
+        return content.toString()
     }
 
     sealed class Event {
