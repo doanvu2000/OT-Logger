@@ -6,9 +6,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.hit.otlogger.data.model.OTModel
 
-const val DATABASE_NAME = "ot_logger_database"
+const val DATABASE_NAME = "ot_logger_database_1"
 
-@Database(entities = [OTModel::class], version = 1, exportSchema = true)
+@Database(entities = [OTModel::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun dao(): AppDAO
 

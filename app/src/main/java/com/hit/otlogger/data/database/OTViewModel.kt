@@ -4,12 +4,7 @@ import androidx.lifecycle.asFlow
 import com.hit.otlogger.base.BaseViewModel
 import com.hit.otlogger.data.model.OTModel
 import com.hit.otlogger.util.CalendarUtil
-import com.hit.otlogger.util.floorOneNumber
-import com.hit.otlogger.util.getMonth
-import com.hit.otlogger.util.getYear
-import com.hit.otlogger.util.toCalendar
-import com.hit.otlogger.util.toDateTimeFormat
-import com.hit.otlogger.util.toHourMinuteFormat
+import com.hit.otlogger.util.toTimeFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +43,9 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
     ) {
         var total = 0
         data.forEach {
-            CalendarUtil.diffTime(it.timeStart, it.timeEnd) { hour, minutes ->
+            CalendarUtil.diffTime(
+                it.hourStart, it.minutesStart, it.hourEnd, it.minutesEnd
+            ) { hour, minutes ->
                 total += hour * 60 + minutes
             }
         }
@@ -69,20 +66,26 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
         val body = StringBuilder()
         var total = 0
         data.forEach { ot ->
-            val otCalendar = ot.date.toCalendar()
-            if (otCalendar.getYear() == yearSelected && otCalendar.getMonth() == monthSelected) {
-                val date = ot.date.toDateTimeFormat()
 
+            if (ot.year == yearSelected && ot.month == monthSelected) {
 
-                CalendarUtil.diffTime(ot.timeStart, ot.timeEnd) { hour, minutes ->
+                CalendarUtil.diffTime(
+                    ot.hourStart, ot.minutesStart, ot.hourEnd, ot.minutesEnd
+                ) { hour, minutes ->
                     total += hour * 60 + minutes
 
-                    body.append(
-                        "- Ngày $date: ${ot.timeStart.toHourMinuteFormat()} - ${
-                            ot.timeEnd.toHourMinuteFormat()
-                        } ($hour giờ $minutes phút)\n"
-                    )
+                    body.append("-Ngày ${ot.day.toTimeFormat()}/${ot.month.toTimeFormat()}/${ot.year}:")
 
+                    body.append("${ot.getTimeStart()} - ${ot.getTimeEnd()}")
+                    if (hour > 0) {
+                        body.append(" ($hour giờ")
+                    }
+
+                    if (minutes > 0) {
+                        body.append(" $minutes phút")
+                    }
+
+                    body.append(")\n")
                     body.append("--------------------------------\n")
                 }
             }
@@ -91,8 +94,15 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
         val totalHour = total / 60
         val totalMinutes = total - totalHour * 60
 
-        val timeString =
-            "${(totalHour + totalMinutes / 60f).floorOneNumber()} giờ($totalHour giờ $totalMinutes phút)"
+        val timeString = StringBuilder("")
+
+        if (totalHour > 0) {
+            timeString.append("$totalHour giờ ")
+        }
+
+        if (totalMinutes > 0) {
+            timeString.append("$totalMinutes phút")
+        }
 
         val content = StringBuilder()
         content.append(title)

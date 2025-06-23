@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_marginHorizontal="16dp"
+    android:background="@drawable/bg_round_20"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        style="@style/fontRoboto700"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:text="Chọn thời gian"
+        android:textColor="@color/black"
+        android:textSize="18dp" />
+
+    <TextView
+        android:id="@+id/tvResultPick"
+        style="@style/fontRoboto600"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textColor="@color/black"
+        android:textSize="16dp"
+        tools:text="17:00 - 07/04/2025" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPickDay"
+        style="@style/fontRoboto600"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Chọn ngày"
+        android:textSize="16dp"
+        app:backgroundTint="@color/black" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#0D000000">
+
+        <TextView
+            style="@style/fontRoboto500"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="12dp"
+            android:text="Giờ"
+            android:textColor="#FF5722"
+            android:textSize="14dp"
+            app:layout_constraintBottom_toTopOf="@id/hourPicker"
+            app:layout_constraintEnd_toEndOf="@id/hourPicker"
+            app:layout_constraintStart_toStartOf="@id/hourPicker"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            style="@style/fontRoboto500"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="12dp"
+            android:text="Phút"
+            android:textColor="#FF5722"
+            android:textSize="14dp"
+            app:layout_constraintBottom_toTopOf="@id/minutesPicker"
+            app:layout_constraintEnd_toEndOf="@id/minutesPicker"
+            app:layout_constraintStart_toStartOf="@id/minutesPicker"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <NumberPicker
+            android:id="@+id/hourPicker"
+            android:layout_width="0dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="1"
+            android:theme="@style/CustomNumberPicker"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/minutesPicker"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <NumberPicker
+            android:id="@+id/minutesPicker"
+            android:layout_width="0dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="1"
+            android:theme="@style/CustomNumberPicker"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/hourPicker" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/btnPick"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="16dp"
+        app:cardBackgroundColor="@color/black"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeWidth="0dp">
+
+        <TextView
+            style="@style/fontRoboto700"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="12dp"
+            android:text="OK"
+            android:textColor="@color/white"
+            android:textSize="16dp" />
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

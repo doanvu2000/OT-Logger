@@ -27,18 +27,13 @@ class DialogResultCopy(private val context: Context) {
 
     @SuppressLint("SetTextI18n")
     fun show(
-        message: String,
-        monthSelected: Int,
-        yearSelected: Int,
-        totalOTMinutes: Int,
-        avg: Int
+        message: String, monthSelected: Int, yearSelected: Int, totalOTMinutes: Int, avg: Int
     ) {
         dialog.setCancelable(true)
         binding.tvTitle.text = "OT Tháng $monthSelected/$yearSelected"
 
         val totalHours = totalOTMinutes / 60
         val totalMinutes = totalOTMinutes - totalHours * 60
-        val timeFloat = (totalHours + totalMinutes / 60.0f).floorOneNumber()
 
         val avgHours = avg / 60
         val avgMinutes = avg - avgHours * 60
@@ -65,7 +60,15 @@ class DialogResultCopy(private val context: Context) {
 
 
         val result = StringBuilder(message)
-        result.append("\n\nTrung bình một ngày: $avgFloat giờ ($avgHours giờ $avgMinutes phút)")
+        result.append("\n\nTrung bình một ngày: ")
+        if (avgHours > 0) {
+            result.append("$avgHours giờ ")
+        }
+
+        if (avgMinutes > 0) {
+            result.append("$avgMinutes phút")
+        }
+
         binding.tvContent.text = result
 
         binding.tvDescription.setTextColor(textColorDescription)

@@ -7,9 +7,7 @@ import com.hit.otlogger.base.BaseAdapterRecyclerView
 import com.hit.otlogger.data.model.OTModel
 import com.hit.otlogger.databinding.ItemMonthTotalLoggerBinding
 import com.hit.otlogger.util.CalendarUtil
-import com.hit.otlogger.util.floorOneNumber
-import com.hit.otlogger.util.toDayFormat
-import com.hit.otlogger.util.toHourMinuteFormat
+import com.hit.otlogger.util.toTimeFormat
 
 class OTAdapter : BaseAdapterRecyclerView<OTModel, ItemMonthTotalLoggerBinding>() {
     override fun inflateBinding(
@@ -22,13 +20,22 @@ class OTAdapter : BaseAdapterRecyclerView<OTModel, ItemMonthTotalLoggerBinding>(
     override fun bindData(
         binding: ItemMonthTotalLoggerBinding, item: OTModel, position: Int
     ) {
-        binding.tvDate.text = "Ngày ${item.date.toDayFormat()}"
+        binding.tvDate.text =
+            "Ngày ${item.day.toTimeFormat()}/${item.month.toTimeFormat()}/${item.year.toTimeFormat()}"
 
-        CalendarUtil.diffTime(item.timeStart, item.timeEnd) { hour, minutes ->
-            val totalTime = (hour + minutes.toFloat() / 60).floorOneNumber()
-
-            binding.tvTimeOT.text =
-                "${item.timeStart.toHourMinuteFormat()} - ${item.timeEnd.toHourMinuteFormat()}($hour giờ $minutes phút)"
+        CalendarUtil.diffTime(
+            item.hourStart, item.minutesStart, item.hourEnd, item.minutesEnd
+        ) { hour, minutes ->
+            val rs = StringBuilder("")
+            rs.append("${item.getTimeStart()} - ${item.getTimeEnd()}")
+            rs.append(
+                if (minutes > 0) {
+                    "($hour giờ $minutes phút)"
+                } else {
+                    "($hour giờ)"
+                }
+            )
+            binding.tvTimeOT.text = rs.toString()
         }
     }
 }

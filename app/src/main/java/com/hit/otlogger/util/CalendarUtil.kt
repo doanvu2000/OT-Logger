@@ -325,4 +325,19 @@ object CalendarUtil {
         onResult.invoke(hours.toInt(), minutes.toInt())
     }
 
+    fun diffTime(
+        hourStart: Int,
+        minutesStart: Int,
+        hourEnd: Int,
+        minutesEnd: Int,
+        onResult: (hour: Int, minutes: Int) -> Unit
+    ) {
+        val startTime = (hourStart * 60 + minutesStart)
+        val endTime = (hourEnd * 60 + minutesEnd)
+        val diff = endTime - startTime
+        val hours = diff / 60
+        val minutes = diff - (hours * 60)
+        onResult.invoke(hours, minutes)
+    }
+
 }

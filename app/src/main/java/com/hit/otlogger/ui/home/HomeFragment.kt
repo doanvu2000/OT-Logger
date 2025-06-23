@@ -15,12 +15,9 @@ import com.hit.otlogger.ui.dialog.AddOTBottomDialog
 import com.hit.otlogger.ui.dialog.DialogPickMonthYear
 import com.hit.otlogger.ui.dialog.DialogResultCopy
 import com.hit.otlogger.util.clickWithAnimation
-import com.hit.otlogger.util.getMonth
-import com.hit.otlogger.util.getYear
 import com.hit.otlogger.util.launchOnStarted
 import com.hit.otlogger.util.setLinearLayoutManager
 import com.hit.otlogger.util.showToast
-import com.hit.otlogger.util.toCalendar
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     override fun inflateLayout(
@@ -104,7 +101,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     override fun initData() {
         launchOnStarted {
             viewModel.allData.collect { data ->
-                val dataSorted = data.sortedBy { it.date }
+                val dataSorted = data.sortedBy { it.year }.sortedBy { it.month }.sortedBy { it.day }
                 allData.clear()
                 allData.addAll(dataSorted)
                 if (isFilter) {
@@ -138,9 +135,20 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         //show dialog to add new OT
         val dialog = AddOTBottomDialog()
         dialog.show(childFragmentManager, null)
-        dialog.setOnTimeSelectedListener { startTime, endTime ->
+        dialog.setOnTimeSelectedListener { startDay, startMonth, startYear, startHour, startMinutes, endHour, endMinutes ->
             // Handle the selected time
-            viewModel.insertData(OTModel(0, startTime, startTime, endTime))
+            viewModel.insertData(
+                OTModel(
+                    0,
+                    day = startDay,
+                    month = startMonth,
+                    year = startYear,
+                    hourStart = startHour,
+                    minutesStart = startMinutes,
+                    hourEnd = endHour,
+                    minutesEnd = endMinutes
+                )
+            )
             showToast("OT added successfully")
         }
     }
@@ -159,35 +167,14 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                     String.format("Tháng %02d/%d", monthSelected, yearSelected)
             }
         }
-
-//        // Show dialog to pick month and year
-//        val calendar = now().toCalendar()
-//        val year = calendar.getYear()
-//        val month = calendar[Calendar.MONTH]
-//
-//        val datePickerDialog = android.app.DatePickerDialog(
-//            requireContext(), { _, selectedYear, selectedMonth, _ ->
-//                // Process the selected year and month
-//                yearSelected = selectedYear
-//                monthSelected = selectedMonth + 1
-//                isFilter = true
-//                reloadData()
-//
-//                binding.btnChooseMonth.text =
-//                    String.format("Tháng %02d/%d", monthSelected, yearSelected)
-//            }, year, month, 1 // Day doesn't matter as we're only interested in month and year
-//        )
-//
-//        datePickerDialog.show()
     }
 
     @SuppressLint("DefaultLocale", "SetTextI18n")
     private fun reloadData() {
-        val filteredList = allData.sortedBy { it.date }.filter { ot ->
-            val otCalendar = ot.date.toCalendar()
-
-            otCalendar.getYear() == yearSelected && otCalendar.getMonth() == monthSelected
-        }
+        val filteredList =
+            allData.sortedBy { it.year }.sortedBy { it.month }.sortedBy { it.day }.filter { item ->
+                item.year == yearSelected && item.month == monthSelected
+            }
         otAdapter.setDataList(filteredList)
 
         viewModel.calculateTotalOT(filteredList) { hour, minutes, total ->
