@@ -32,6 +32,12 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
         }
     }
 
+    fun updateData(entity: OTModel) {
+        launchSafe(Dispatchers.IO) {
+            repository.updateGallery(entity)
+        }
+    }
+
     fun deleteData(entity: OTModel) {
         launchSafe(Dispatchers.IO) {
             repository.deleteGallery(entity)
@@ -138,6 +144,7 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
         data object ClickAdd : Event()
         data object ClickChooseMonth : Event()
         data object ClickCopy : Event()
+        data class ClickItemOT(val otModel: OTModel, val position: Int) : Event()
     }
 
     private val eventChannel = Channel<Event>()
@@ -153,5 +160,9 @@ class OTViewModel(private val repository: AppRepository) : BaseViewModel() {
 
     fun clickCopy() {
         sendEvent(eventChannel, Event.ClickCopy)
+    }
+
+    fun clickItemOT(otModel: OTModel, position: Int) {
+        sendEvent(eventChannel, Event.ClickItemOT(otModel, position))
     }
 }

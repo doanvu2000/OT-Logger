@@ -12,12 +12,14 @@ import com.hit.otlogger.data.database.getViewModelFactory
 import com.hit.otlogger.data.model.OTModel
 import com.hit.otlogger.databinding.FragmentHomeBinding
 import com.hit.otlogger.ui.dialog.AddOTBottomDialog
+import com.hit.otlogger.ui.dialog.DialogEditDescriptionItem
 import com.hit.otlogger.ui.dialog.DialogPickMonthYear
 import com.hit.otlogger.ui.dialog.DialogResultCopy
 import com.hit.otlogger.util.clickWithAnimation
 import com.hit.otlogger.util.launchOnStarted
 import com.hit.otlogger.util.setLinearLayoutManager
 import com.hit.otlogger.util.showToast
+import com.hit.otlogger.util.toTimeFormat
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     override fun inflateLayout(
@@ -36,6 +38,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         OTAdapter()
     }
 
+    //region Dialogs
     private val dialogResult by lazy {
         DialogResultCopy(requireContext())
     }
@@ -43,6 +46,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     private val dialogPickMonthYear by lazy {
         DialogPickMonthYear(requireContext())
     }
+
+    private val dialogEditDescription by lazy {
+        DialogEditDescriptionItem(requireContext())
+    }
+    //endregion
 
     override fun initView() {
         binding.rcvOTLogger.setLinearLayoutManager(requireContext(), otAdapter)
@@ -61,12 +69,37 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                     OTViewModel.Event.ClickCopy -> {
                         clickCopy()
                     }
+
+                    is OTViewModel.Event.ClickItemOT -> {
+                        // Handle click on OT item
+                        val otItem = event.otModel
+
+                        // Show dialog edit description
+                        showDialogEditDescription(otItem)
+                    }
                 }
             }
         }
 
         // Setup swipe to delete
         setupSwipeToDelete()
+    }
+
+    private fun showDialogEditDescription(otItem: OTModel) {
+        val title =
+            "Chỉnh sửa mô tả OT: ${otItem.day.toTimeFormat()}/${otItem.month.toTimeFormat()}/${otItem.year} "
+        val subTitle =
+            "${otItem.hourStart.toTimeFormat()}:${otItem.minutesStart.toTimeFormat()} -" +
+                    " ${otItem.hourEnd.toTimeFormat()}:${otItem.minutesEnd.toTimeFormat()}"
+        dialogEditDescription.show(
+            title = title,
+            subTitle = subTitle,
+            description = otItem.description,
+        ) { newDescription ->
+            // Update the description in the database
+            viewModel.updateData(otItem.copy(description = newDescription))
+            showToast("Mô tả đã được cập nhật")
+        }
     }
 
     private fun setupSwipeToDelete() {
@@ -128,6 +161,12 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
         binding.btnCopy.clickWithAnimation {
             viewModel.clickCopy()
+        }
+
+        otAdapter.setOnClickItem { otItem, position ->
+            otItem?.let {
+                viewModel.clickItemOT(it, position)
+            }
         }
     }
 

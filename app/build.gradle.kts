@@ -14,12 +14,18 @@ android {
         applicationId = "com.hit.otlogger"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.3"
+        versionCode = 4
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         base.archivesName = "OT Logger($versionName)"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["room.schemaLocation"] = "$projectDir/schemas"
+            }
+        }
     }
 
     buildTypes {
@@ -78,4 +84,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
+}
+
+// Cấu hình KSP: truyền argument room.schemaLocation
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }

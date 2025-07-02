@@ -12,7 +12,8 @@ data class OTModel(
     val hourStart: Int = 0,
     val minutesStart: Int = 0,
     val hourEnd: Int = 0,
-    val minutesEnd: Int = 0
+    val minutesEnd: Int = 0,
+    var description: String = ""
 ) {
     fun getTimeStart(): String {
         return String.format("%02d:%02d", hourStart, minutesStart)

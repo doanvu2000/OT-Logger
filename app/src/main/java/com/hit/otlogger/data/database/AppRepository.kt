@@ -11,6 +11,10 @@ class AppRepository(private val appDao: AppDAO) {
         appDao.insertData(otModel)
     }
 
+    suspend fun updateGallery(otModel: OTModel) {
+        appDao.updateData(otModel)
+    }
+
     suspend fun deleteGallery(otModel: OTModel) {
         appDao.deleteData(otModel)
     }
